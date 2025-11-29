@@ -27,7 +27,7 @@ Livingseed Media Cut is a robust API designed to help our ministry community eas
 - 📊 **Real-time Progress** - Track extraction progress with live updates
 - 📜 **Download History** - Keep track of your recent extractions
 - ⚡ **Fast & Free** - No registration required, completely free to use
-- ⚡ **Fast & Free** - No registration required, completely free to use
+
 
 ---
 
