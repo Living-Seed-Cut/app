@@ -641,28 +641,54 @@ class AudioSnippetExtractor:
 
                             # Optimized yt-dlp settings for speed with anti-bot measures
                             ydl_opts = {
-                                'format': 'bestaudio[ext=m4a]/bestaudio/best',  # Prefer m4a for faster processing
+                                'format': 'bestaudio[ext=m4a]/bestaudio/best',
                                 'outtmpl': f'{temp_basename}.%(ext)s',
                                 'quiet': True,
                                 'progress_hooks': [progress_hook],
-                                'concurrent_fragment_downloads': config.YTDL_CONCURRENT_FRAGMENTS,  # Parallel fragment downloads
-                                'buffersize': 1024 * 1024,  # 1MB buffer for faster I/O
-                                'http_chunk_size': 10485760,  # 10MB chunks
+                                'concurrent_fragment_downloads': config.YTDL_CONCURRENT_FRAGMENTS,
+                                'buffersize': 1024 * 1024,
+                                'http_chunk_size': 10485760,
                                 'retries': 3,
                                 'fragment_retries': 3,
                                 'skip_unavailable_fragments': True,
                                 'socket_timeout': 20,
                                 'nocheckcertificate': True,
-                                'source_address': '0.0.0.0',  # Force IPv4
-                                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                'source_address': '0.0.0.0',
+                                'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
                                 'referer': 'https://www.youtube.com/',
-                                'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+                                # Use iOS client which is more lenient without PO Token
+                                'extractor_args': {
+                                    'youtube': {
+                                        'player_client': ['ios', 'android', 'web'],
+                                        'skip': ['hls', 'dash'],
+                                        'player_skip': ['js', 'configs', 'webpage'],
+                                    }
+                                },
                                 'postprocessors': [{
                                     'key': 'FFmpegExtractAudio',
                                     'preferredcodec': 'm4a',
                                     'preferredquality': '192',
                                 }],
                             }
+                            
+                            # Add PO Token / Visitor Data if available (Cookie-less bypass)
+                            if config.YOUTUBE_PO_TOKEN or config.YOUTUBE_VISITOR_DATA:
+                                if 'extractor_args' not in ydl_opts:
+                                    ydl_opts['extractor_args'] = {'youtube': {}}
+                                
+                                if config.YOUTUBE_PO_TOKEN:
+                                    ydl_opts['extractor_args']['youtube']['po_token'] = [f'web+{config.YOUTUBE_PO_TOKEN}']
+                                    logger.info("Using PO Token for anti-bot bypass")
+                                
+                                if config.YOUTUBE_VISITOR_DATA:
+                                    # Clean visitor data (remove trailing dot, URL decode if needed)
+                                    visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
+                                    if '%' in visitor_data:
+                                        from urllib.parse import unquote
+                                        visitor_data = unquote(visitor_data)
+                                    
+                                    ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
+                                    logger.info("Using Visitor Data for anti-bot bypass")
                             
                             if self.proxy_url:
                                 ydl_opts['proxy'] = self.proxy_url
@@ -672,10 +698,12 @@ class AudioSnippetExtractor:
                                 ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
 
                             # Add OAuth token if available
-                            creds = self._get_google_creds()
-                            if creds and creds.valid:
-                                ydl_opts['http_headers'] = {'Authorization': f'Bearer {creds.token}'}
-                                logger.info("Using OAuth token for audio download")
+                            # Note: Data API token is NOT compatible with yt-dlp downloads, so we don't inject it here.
+                            # We rely on cookies for download authentication.
+                            # creds = self._get_google_creds()
+                            # if creds and creds.valid:
+                            #    ydl_opts['http_headers'] = {'Authorization': f'Bearer {creds.token}'}
+                            #    logger.info("Using OAuth token for audio download")
 
                             with YoutubeDL(ydl_opts) as ydl:
                                 ydl.download([request.url])
@@ -891,7 +919,7 @@ class AudioSnippetExtractor:
         
         # yt-dlp options for video download with anti-bot measures
         ydl_opts = {
-            'format': 'best[ext=mp4]/best[height<=720]/best',  # Prefer MP4, limit to 720p for reasonable file sizes
+            'format': 'best[ext=mp4]/best[height<=720]/best',
             'outtmpl': f'{temp_basename}.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
@@ -903,12 +931,36 @@ class AudioSnippetExtractor:
             'skip_unavailable_fragments': True,
             'socket_timeout': 20,
             'nocheckcertificate': True,
-            'source_address': '0.0.0.0',  # Force IPv4
-            # Anti-bot measures
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'source_address': '0.0.0.0',
+            'user_agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
             'referer': 'https://www.youtube.com/',
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['ios', 'android', 'web'],
+                    'skip': ['hls', 'dash'],
+                    'player_skip': ['js', 'configs', 'webpage'],
+                }
+            },
         }
+        
+        if self.proxy_url:
+            ydl_opts['proxy'] = self.proxy_url
+
+        # Add PO Token / Visitor Data if available (Cookie-less bypass)
+        if config.YOUTUBE_PO_TOKEN or config.YOUTUBE_VISITOR_DATA:
+            if config.YOUTUBE_PO_TOKEN:
+                ydl_opts['extractor_args']['youtube']['po_token'] = [f'web+{config.YOUTUBE_PO_TOKEN}']
+                logger.info("Using PO Token for video download")
+            
+            if config.YOUTUBE_VISITOR_DATA:
+                # Clean visitor data
+                visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
+                if '%' in visitor_data:
+                    from urllib.parse import unquote
+                    visitor_data = unquote(visitor_data)
+                
+                ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
+                logger.info("Using Visitor Data for video download")
         
         if self.proxy_url:
             ydl_opts['proxy'] = self.proxy_url
@@ -918,10 +970,11 @@ class AudioSnippetExtractor:
             ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
 
         # Add OAuth token if available
-        creds = self._get_google_creds()
-        if creds and creds.valid:
-            ydl_opts['http_headers'] = {'Authorization': f'Bearer {creds.token}'}
-            logger.info("Using OAuth token for video download")
+        # Note: Data API token is NOT compatible with yt-dlp downloads.
+        # creds = self._get_google_creds()
+        # if creds and creds.valid:
+        #     ydl_opts['http_headers'] = {'Authorization': f'Bearer {creds.token}'}
+        #     logger.info("Using OAuth token for video download")
 
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])

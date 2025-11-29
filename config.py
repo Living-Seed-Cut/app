@@ -5,6 +5,10 @@ Centralizes all environment variables and application constants.
 
 import os
 import tempfile
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # =============================================================================
 # Server Configuration
@@ -86,6 +90,23 @@ YOUTUBE_API_TOKEN_FILE = os.getenv("YOUTUBE_API_TOKEN_FILE", "youtube_api_creds.
 # Google OAuth Credentials (Base64 encoded content)
 GOOGLE_CLIENT_SECRETS = os.getenv("GOOGLE_CLIENT_SECRETS")
 GOOGLE_API_TOKEN = os.getenv("GOOGLE_API_TOKEN")
+
+# YouTube Proof of Origin (PO) Token
+# This is a cookie-less way to bypass bot detection.
+# See: https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide
+YOUTUBE_PO_TOKEN = os.getenv("YOUTUBE_PO_TOKEN")
+YOUTUBE_VISITOR_DATA = os.getenv("YOUTUBE_VISITOR_DATA")
+
+# Debug logging for environment variables
+if YOUTUBE_VISITOR_DATA:
+    print(f"✅ Loaded YOUTUBE_VISITOR_DATA: {YOUTUBE_VISITOR_DATA[:20]}...")
+else:
+    print("❌ YOUTUBE_VISITOR_DATA not found in environment")
+
+if YOUTUBE_PO_TOKEN:
+    print(f"✅ Loaded YOUTUBE_PO_TOKEN: {YOUTUBE_PO_TOKEN[:20]}...")
+else:
+    print("⚠️ YOUTUBE_PO_TOKEN not found in environment")
 
 # =============================================================================
 # Processing Configuration

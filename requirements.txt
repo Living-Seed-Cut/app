@@ -9,3 +9,4 @@ mutagen
 imageio-ffmpeg
 google-api-python-client 
 google-auth-httplib2
+python-dotenv

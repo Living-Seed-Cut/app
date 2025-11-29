@@ -11,7 +11,7 @@ from pathlib import Path
 # --- Configuration matching extractor.py ---
 CLIENT_SECRETS_FILE = 'client_secrets.json'
 YOUTUBE_API_TOKEN_FILE = 'youtube_api_creds.pickle'
-SCOPES = ['https://www.googleapis.com/auth/youtube.readonly']
+SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl', 'https://www.googleapis.com/auth/youtube.readonly']
 # ---
 
 logger = logging.getLogger(__name__)

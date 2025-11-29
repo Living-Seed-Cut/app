@@ -136,7 +136,9 @@ app/
 | `HOST` | Server host | 0.0.0.0 |
 | `YOUTUBE_PROXY_URL` | Proxy URL | None |
 | `YOUTUBE_COOKIES_PATH` | Path to cookies file | None |
-| `YOUTUBE_COOKIES_CONTENT` | Base64 encoded cookies | None |
+| `YOUTUBE_VISITOR_DATA` | Cookie-less bot bypass token (from `window.yt.config_.VISITOR_DATA`) | |
+| `YOUTUBE_PO_TOKEN` | Proof of Origin Token (Optional, for advanced bypass) | |
+| `YOUTUBE_COOKIES_CONTENT` | Base64 encoded content of `cookies.txt` (Fallback) | None |
 | `LOG_TO_FILE` | Enable file logging | false |
 | `MAX_CONCURRENT_JOBS` | Max simultaneous extractions | 3 |
 | `CACHE_ENABLED` | Enable audio caching | true |
@@ -171,7 +173,20 @@ For cloud deployments (like Vercel) where you cannot upload sensitive files like
     ```
     Copy the output and set it as `GOOGLE_API_TOKEN`.
 
-### YouTube Cookies (Cloud Deployment) (Vercel/Render)
+### Anti-Bot Bypass (Cookie-less)
+
+To bypass YouTube's "Sign in to confirm you’re not a bot" error without using cookies, you can use the **Visitor Data** token.
+
+1.  **Get Visitor Data**:
+    *   Open YouTube in a browser (Incognito recommended).
+    *   Open Developer Tools (F12) -> Console.
+    *   Run: `window.yt.config_.VISITOR_DATA`
+    *   Copy the output string (e.g., `Cgt...`).
+
+2.  **Configure**:
+    *   Set `YOUTUBE_VISITOR_DATA` environment variable with this string.
+
+### YouTube Cookies (Legacy/Fallback)
 
 For cloud environments where you can't upload files easily:
 

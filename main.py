@@ -7,6 +7,10 @@ import time
 import logging
 import tempfile
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,17 +48,17 @@ async def lifespan(app: FastAPI):
     os.makedirs(config.TEMP_DIR, exist_ok=True)
     
     # Handle cookies from environment variable (Base64 encoded)
-    # if config.YOUTUBE_COOKIES_CONTENT:
-    #     try:
-    #         import base64
-    #         cookies_content = base64.b64decode(config.YOUTUBE_COOKIES_CONTENT).decode('utf-8')
-    #         cookies_path = os.path.join(config.TEMP_DIR, 'cookies.txt')
-    #         with open(cookies_path, 'w') as f:
-    #             f.write(cookies_content)
-    #         config.YOUTUBE_COOKIES_PATH = cookies_path
-    #         logger.info(f"Loaded cookies from environment variable to {cookies_path}")
-    #     except Exception as e:
-    #         logger.error(f"Failed to load cookies from environment variable: {e}")
+    if config.YOUTUBE_COOKIES_CONTENT:
+        try:
+            import base64
+            cookies_content = base64.b64decode(config.YOUTUBE_COOKIES_CONTENT).decode('utf-8')
+            cookies_path = os.path.join(config.TEMP_DIR, 'cookies.txt')
+            with open(cookies_path, 'w') as f:
+                f.write(cookies_content)
+            config.YOUTUBE_COOKIES_PATH = cookies_path
+            logger.info(f"Loaded cookies from environment variable to {cookies_path}")
+        except Exception as e:
+            logger.error(f"Failed to load cookies from environment variable: {e}")
 
     # Start automatic cleanup thread
     extractor.start_cleanup_thread()
@@ -93,7 +97,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://living-seed-cut-web.vercel.app"],  # Configure appropriately for production
+    allow_origins=["https://living-seed-cut-web.vercel.app", "http://localhost:3000", "http://127.0.0.1:3000"],  # Configure appropriately for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
