@@ -57,10 +57,10 @@ def get_ffmpeg_path() -> str:
             logger.info(f"✅ Using bundled FFmpeg from imageio-ffmpeg: {ffmpeg_path}")
             _ffmpeg_path_cache = ffmpeg_path
             return ffmpeg_path
-    except ImportError:
-        logger.warning("imageio-ffmpeg not installed, trying system FFmpeg...")
+    except ImportError as e:
+        logger.warning(f"imageio-ffmpeg not installed: {e}, trying system FFmpeg...")
     except Exception as e:
-        logger.warning(f"Failed to use bundled FFmpeg: {e}, trying system FFmpeg...")
+        logger.warning(f"Failed to use bundled FFmpeg (stderr: {getattr(result, 'stderr', 'N/A')}): {e}, trying system FFmpeg...")
     
     # Try 2: Use system FFmpeg
     try:
