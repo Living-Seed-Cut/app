@@ -644,7 +644,7 @@ class AudioSnippetExtractor:
                             
                             # Download audio directly without post-processing (no ffmpeg needed)
                             ydl_opts = {
-                                'format': 'bestaudio[ext=m4a]/bestaudio',
+                                'format': 'bestaudio/best',
                                 'outtmpl': f'{temp_basename}.%(ext)s',
                                 'quiet': True,
                                 'progress_hooks': [progress_hook],
