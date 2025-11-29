@@ -703,25 +703,14 @@ class AudioSnippetExtractor:
                             return possible_files[0]  # Return actual filename with correct extension
 
                         loop = asyncio.get_event_loop()
-                        downloaded_file_base = await loop.run_in_executor(None, _download_audio)
+                        downloaded_file = await loop.run_in_executor(None, _download_audio)
 
                         # Cache the downloaded file for future use (only for audio)
-                        self._cache_audio_file(request.url, downloaded_file_base)
-                
-                # The download succeeded
-                logger.info(f"Cached audio file for: {request.url}")
-                
-                # Find the actual downloaded file (yt-dlp uses whatever extension YouTube provides)
-                import glob
-                possible_files = glob.glob(f'{downloaded_file_base}.*')
-                if not possible_files:
-                    raise FileNotFoundError(f"Downloaded file not found. Expected pattern: {downloaded_file_base}.*")
-                
-                downloaded_file = possible_files[0]
-                logger.info(f"Found downloaded file: {downloaded_file}")
+                        self._cache_audio_file(request.url, downloaded_file)
+                        logger.info(f"Downloaded and cached: {downloaded_file}")
                 
                 # Handle output format conversion
-                if request.output_format == 'mp4': # Assuming request.is_video is equivalent to output_format == 'mp4'
+                if request.output_format == 'mp4':
                     # Process video with optional trimming
                     job_storage[job_id]['progress'] = 'Processing video...'
                     job_storage[job_id]['percent'] = 75.0
