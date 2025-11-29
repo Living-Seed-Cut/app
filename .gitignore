@@ -172,3 +172,5 @@ dmypy.json
 *.pid
 *.sock
 *.socket
+client_secrets**
+token.json
