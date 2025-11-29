@@ -642,18 +642,9 @@ class AudioSnippetExtractor:
                             # Determine authentication method and select appropriate client
                             has_cookies = config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH)
                             
-                            # Get ffmpeg location (for Vercel compatibility)
-                            ffmpeg_location = None
-                            try:
-                                import imageio_ffmpeg
-                                ffmpeg_location = imageio_ffmpeg.get_ffmpeg_exe()
-                                logger.info(f"Found ffmpeg at: {ffmpeg_location}")
-                            except Exception as e:
-                                logger.warning(f"Could not locate ffmpeg: {e}")
-                            
-                            # Minimal yt-dlp settings
+                            # Download audio directly without post-processing (no ffmpeg needed)
                             ydl_opts = {
-                                'format': 'bestaudio[ext=m4a]/bestaudio/best',
+                                'format': 'bestaudio[ext=m4a]/bestaudio',
                                 'outtmpl': f'{temp_basename}.%(ext)s',
                                 'quiet': True,
                                 'progress_hooks': [progress_hook],
@@ -665,16 +656,7 @@ class AudioSnippetExtractor:
                                 'skip_unavailable_fragments': True,
                                 'socket_timeout': 20,
                                 'nocheckcertificate': True,
-                                'postprocessors': [{
-                                    'key': 'FFmpegExtractAudio',
-                                    'preferredcodec': 'm4a',
-                                    'preferredquality': '192',
-                                }],
                             }
-                            
-                            # Set ffmpeg location if found
-                            if ffmpeg_location:
-                                ydl_opts['ffmpeg_location'] = os.path.dirname(ffmpeg_location)
                             
                             # Configure client based on authentication method
                             if has_cookies:
