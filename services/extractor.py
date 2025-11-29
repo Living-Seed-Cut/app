@@ -642,6 +642,14 @@ class AudioSnippetExtractor:
                             # Determine authentication method and select appropriate client
                             has_cookies = config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH)
                             
+                            # Get ffmpeg location (for Vercel compatibility)
+                            ffmpeg_location = None
+                            try:
+                                import imageio_ffmpeg
+                                ffmpeg_location = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe())
+                            except:
+                                pass
+                            
                             # Minimal yt-dlp settings - avoid complex extractor_args that cause "n challenge" errors
                             ydl_opts = {
                                 'format': 'bestaudio[ext=m4a]/bestaudio/best',
@@ -662,6 +670,10 @@ class AudioSnippetExtractor:
                                     'preferredquality': '192',
                                 }],
                             }
+                            
+                            # Set ffmpeg location if found
+                            if ffmpeg_location:
+                                ydl_opts['ffmpeg_location'] = ffmpeg_location
                             
                             # Configure client based on authentication method
                             if has_cookies:
