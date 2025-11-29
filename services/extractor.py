@@ -642,7 +642,7 @@ class AudioSnippetExtractor:
                             # Determine authentication method and select appropriate client
                             has_cookies = config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH)
                             
-                            # Optimized yt-dlp settings for speed with anti-bot measures
+                            # Minimal yt-dlp settings - avoid complex extractor_args that cause "n challenge" errors
                             ydl_opts = {
                                 'format': 'bestaudio[ext=m4a]/bestaudio/best',
                                 'outtmpl': f'{temp_basename}.%(ext)s',
@@ -656,9 +656,6 @@ class AudioSnippetExtractor:
                                 'skip_unavailable_fragments': True,
                                 'socket_timeout': 20,
                                 'nocheckcertificate': True,
-                                'source_address': '0.0.0.0',
-                                'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                                'referer': 'https://www.youtube.com/',
                                 'postprocessors': [{
                                     'key': 'FFmpegExtractAudio',
                                     'preferredcodec': 'm4a',
@@ -668,41 +665,25 @@ class AudioSnippetExtractor:
                             
                             # Configure client based on authentication method
                             if has_cookies:
-                                # Cookies only work with web client
-                                ydl_opts['extractor_args'] = {
-                                    'youtube': {
-                                        'player_client': ['web'],
-                                        'skip': ['hls', 'dash'],
-                                        'player_skip': ['js', 'configs', 'webpage'],
-                                    }
-                                }
+                                # Cookies: use default settings, let yt-dlp auto-select client
                                 ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
-                                logger.info("Using cookies with web client for authentication")
+                                logger.info("Using cookies for authentication")
                             else:
-                                # No cookies - use iOS/Android clients with visitor_data
+                                # No cookies: use iOS client with minimal args
                                 ydl_opts['extractor_args'] = {
                                     'youtube': {
-                                        'player_client': ['ios', 'android', 'web'],
-                                        'skip': ['hls', 'dash'],
-                                        'player_skip': ['js', 'configs', 'webpage'],
+                                        'player_client': ['ios'],
                                     }
                                 }
                                 
-                                # Add PO Token / Visitor Data if available (Cookie-less bypass)
-                                if config.YOUTUBE_PO_TOKEN or config.YOUTUBE_VISITOR_DATA:
-                                    if config.YOUTUBE_PO_TOKEN:
-                                        ydl_opts['extractor_args']['youtube']['po_token'] = [f'web+{config.YOUTUBE_PO_TOKEN}']
-                                        logger.info("Using PO Token for anti-bot bypass")
-                                    
-                                    if config.YOUTUBE_VISITOR_DATA:
-                                        # Clean visitor data (remove trailing dot, URL decode if needed)
-                                        visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
-                                        if '%' in visitor_data:
-                                            from urllib.parse import unquote
-                                            visitor_data = unquote(visitor_data)
-                                        
-                                        ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
-                                        logger.info("Using Visitor Data for anti-bot bypass")
+                                # Add visitor_data if available
+                                if config.YOUTUBE_VISITOR_DATA:
+                                    visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
+                                    if '%' in visitor_data:
+                                        from urllib.parse import unquote
+                                        visitor_data = unquote(visitor_data)
+                                    ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
+                                    logger.info("Using iOS client with Visitor Data")
                             
                             if self.proxy_url:
                                 ydl_opts['proxy'] = self.proxy_url
@@ -927,10 +908,10 @@ class AudioSnippetExtractor:
 
         temp_basename = os.path.join(self.temp_dir, f"temp_video_{job_id}")
         
-        # Determine authentication method and select appropriate client
+        # Determine authentication method
         has_cookies = config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH)
         
-        # yt-dlp options for video download with anti-bot measures
+        # Minimal yt-dlp settings
         ydl_opts = {
             'format': 'best[ext=mp4]/best[height<=720]/best',
             'outtmpl': f'{temp_basename}.%(ext)s',
@@ -944,51 +925,24 @@ class AudioSnippetExtractor:
             'skip_unavailable_fragments': True,
             'socket_timeout': 20,
             'nocheckcertificate': True,
-            'source_address': '0.0.0.0',
-            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'referer': 'https://www.youtube.com/',
         }
         
-        # Configure client based on authentication method
         if has_cookies:
-            # Cookies only work with web client
-            ydl_opts['extractor_args'] = {
-                'youtube': {
-                    'player_client': ['web'],
-                    'skip': ['hls', 'dash'],
-                    'player_skip': ['js', 'configs', 'webpage'],
-                }
-            }
             ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
-            logger.info("Using cookies with web client for video download")
+            logger.info("Using cookies for video download")
         else:
-            # No cookies - use iOS/Android clients with visitor_data
             ydl_opts['extractor_args'] = {
                 'youtube': {
-                    'player_client': ['ios', 'android', 'web'],
-                    'skip': ['hls', 'dash'],
-                    'player_skip': ['js', 'configs', 'webpage'],
+                    'player_client': ['ios'],
                 }
             }
-            
-            # Add PO Token / Visitor Data if available (Cookie-less bypass)
-            if config.YOUTUBE_PO_TOKEN or config.YOUTUBE_VISITOR_DATA:
-                if config.YOUTUBE_PO_TOKEN:
-                    ydl_opts['extractor_args']['youtube']['po_token'] = [f'web+{config.YOUTUBE_PO_TOKEN}']
-                    logger.info("Using PO Token for video download")
-                
-                if config.YOUTUBE_VISITOR_DATA:
-                    # Clean visitor data
-                    visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
-                    if '%' in visitor_data:
-                        from urllib.parse import unquote
-                        visitor_data = unquote(visitor_data)
-                    
-                    ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
-                    logger.info("Using Visitor Data for video download")
-        
-        if self.proxy_url:
-            ydl_opts['proxy'] = self.proxy_url
+            if config.YOUTUBE_VISITOR_DATA:
+                visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
+                if '%' in visitor_data:
+                    from urllib.parse import unquote
+                    visitor_data = unquote(visitor_data)
+                ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
+                logger.info("Using iOS client with Visitor Data for video")
         
         if self.proxy_url:
             ydl_opts['proxy'] = self.proxy_url
