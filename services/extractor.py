@@ -586,6 +586,7 @@ class AudioSnippetExtractor(YoutubeAPI):
                 logger.error(f"Job {job_id} failed: {e}")
                 job_storage[job_id]['status'] = 'failed'
                 error_message = str(e)
+                print("debugging issue: ", str(e))
                 file_type = "video" if request.output_format == 'mp4' else "audio"
                 if "FFmpeg failed" in error_message or "process" in error_message.lower():
                     error_message = f"Failed to process the {file_type} file. Please try again."
