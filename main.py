@@ -93,7 +93,7 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://living-seed-cut-web.vercel.app/"],  # Configure appropriately for production
+    allow_origins=["https://living-seed-cut-web.vercel.app"],  # Configure appropriately for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
