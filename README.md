@@ -135,6 +135,7 @@ app/
 |----------|-------------|---------|
 | `HOST` | Server host | 0.0.0.0 |
 | `PORT` | Server port | 5000 |
+| `LOG_TO_FILE` | Enable file logging | false |
 | `MAX_CONCURRENT_JOBS` | Max simultaneous extractions | 3 |
 | `CACHE_ENABLED` | Enable audio caching | true |
 | `FFMPEG_THREADS` | Threads for processing | 4 |
