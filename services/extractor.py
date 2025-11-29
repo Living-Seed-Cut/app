@@ -718,6 +718,20 @@ class AudioSnippetExtractor:
                     job_storage[job_id]['percent'] = 75.0
                 
                 def _trim_audio():
+                    # Check if ffmpeg is available
+                    try:
+                        ffmpeg_path = get_ffmpeg_path()
+                    except RuntimeError as e:
+                        logger.warning(f"FFmpeg not available on this platform: {e}")
+                        # If full extraction or no ffmpeg, just return the downloaded file
+                        if request.extract_full:
+                            logger.info("Returning full downloaded audio (no trim needed)")
+                            return downloaded_file
+                        else:
+                            logger.warning("Cannot trim audio without ffmpeg - returning full audio")
+                            job_storage[job_id]['progress'] = 'Note: Returning full audio (trimming unavailable)'
+                            return downloaded_file
+                    
                     codec_map = {
                         'mp3': 'libmp3lame',
                         'wav': 'pcm_s16le',
@@ -726,9 +740,6 @@ class AudioSnippetExtractor:
                     }
                 
                     codec = codec_map.get(request.output_format, 'libmp3lame')
-                    
-                    # Get FFmpeg path (hybrid approach: bundled or system)
-                    ffmpeg_path = get_ffmpeg_path()
                     
                     # Optimized FFmpeg command for speed
                     ffmpeg_command = [
@@ -773,10 +784,14 @@ class AudioSnippetExtractor:
                             snippet_duration = None
                     else:
                         snippet_duration = end_seconds - start_seconds
+                    
+                    ffmpeg_output = []
                     while True:
                         line = process.stdout.readline()
                         if not line and process.poll() is not None:
                             break
+                        
+                        ffmpeg_output.append(line)  # Capture all output
                         
                         if line.startswith('out_time_ms='):
                             try:
@@ -797,7 +812,9 @@ class AudioSnippetExtractor:
                     process.wait(timeout=self.timeout)
                     
                     if process.returncode != 0:
-                        raise RuntimeError("Failed to process the audio file. Please try again.")
+                        error_output = ''.join(ffmpeg_output[-20:])  # Last 20 lines
+                        logger.error(f"FFmpeg failed with code {process.returncode}. Output: {error_output}")
+                        raise RuntimeError(f"FFmpeg processing failed: {error_output[:500]}")
                 
                 # Get the event loop
                 loop = asyncio.get_event_loop()
