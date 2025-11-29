@@ -646,11 +646,12 @@ class AudioSnippetExtractor:
                             ffmpeg_location = None
                             try:
                                 import imageio_ffmpeg
-                                ffmpeg_location = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe())
-                            except:
-                                pass
+                                ffmpeg_location = imageio_ffmpeg.get_ffmpeg_exe()
+                                logger.info(f"Found ffmpeg at: {ffmpeg_location}")
+                            except Exception as e:
+                                logger.warning(f"Could not locate ffmpeg: {e}")
                             
-                            # Minimal yt-dlp settings - avoid complex extractor_args that cause "n challenge" errors
+                            # Minimal yt-dlp settings
                             ydl_opts = {
                                 'format': 'bestaudio[ext=m4a]/bestaudio/best',
                                 'outtmpl': f'{temp_basename}.%(ext)s',
@@ -673,7 +674,7 @@ class AudioSnippetExtractor:
                             
                             # Set ffmpeg location if found
                             if ffmpeg_location:
-                                ydl_opts['ffmpeg_location'] = ffmpeg_location
+                                ydl_opts['ffmpeg_location'] = os.path.dirname(ffmpeg_location)
                             
                             # Configure client based on authentication method
                             if has_cookies:
