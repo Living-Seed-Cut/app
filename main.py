@@ -18,13 +18,18 @@ from services.extractor import extractor, file_storage
 from routes import extract_router, video_info_router, health_router, app_router
 
 # Configure logging
+# Configure logging
+handlers = [logging.StreamHandler()]
+if config.LOG_TO_FILE:
+    try:
+        handlers.append(logging.FileHandler(config.LOG_FILE_NAME))
+    except IOError as e:
+        print(f"⚠️  Could not create log file: {e}")
+
 logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL.upper()),
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('audio_snippet_api.log'),
-        logging.StreamHandler()
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
 

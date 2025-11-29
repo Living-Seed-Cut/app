@@ -13,7 +13,10 @@ import tempfile
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "5000"))
 RELOAD = os.getenv("RELOAD", "false").lower() == "true"
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
+LOG_TO_FILE = os.getenv("LOG_TO_FILE", "false").lower() == "true"
+LOG_FILE_NAME = os.getenv("LOG_FILE_NAME", "audio_snippet_api.log")
 
 # =============================================================================
 # Cleanup Configuration
