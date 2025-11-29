@@ -43,6 +43,19 @@ async def lifespan(app: FastAPI):
     # Create temp directory if it doesn't exist
     os.makedirs(config.TEMP_DIR, exist_ok=True)
     
+    # Handle cookies from environment variable (Base64 encoded)
+    if config.YOUTUBE_COOKIES_CONTENT:
+        try:
+            import base64
+            cookies_content = base64.b64decode(config.YOUTUBE_COOKIES_CONTENT).decode('utf-8')
+            cookies_path = os.path.join(config.TEMP_DIR, 'cookies.txt')
+            with open(cookies_path, 'w') as f:
+                f.write(cookies_content)
+            config.YOUTUBE_COOKIES_PATH = cookies_path
+            logger.info(f"Loaded cookies from environment variable to {cookies_path}")
+        except Exception as e:
+            logger.error(f"Failed to load cookies from environment variable: {e}")
+
     # Start automatic cleanup thread
     extractor.start_cleanup_thread()
     

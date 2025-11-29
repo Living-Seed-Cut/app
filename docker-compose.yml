@@ -10,9 +10,12 @@ services:
       - HOST=0.0.0.0
       - TEMP_DIR=/app/temp
       - TIMEOUT=300
+      # - YOUTUBE_COOKIES_PATH=/app/cookies.txt
+      # - YOUTUBE_COOKIES_CONTENT=... (Base64 encoded cookies)
     volumes:
       - ./temp:/app/temp
       - ./logs:/app/logs
+      # - ./cookies.txt:/app/cookies.txt:ro  # Uncomment to use cookies
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]

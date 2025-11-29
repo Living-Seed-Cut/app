@@ -387,6 +387,11 @@ class AudioSnippetExtractor:
             }
             if self.proxy_url:
                 ydl_opts['proxy'] = self.proxy_url
+            
+            # Add cookies if configured
+            if config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH):
+                ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
+                logger.info(f"Using cookies file: {config.YOUTUBE_COOKIES_PATH}")
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
                 return {
@@ -546,6 +551,10 @@ class AudioSnippetExtractor:
                             
                             if self.proxy_url:
                                 ydl_opts['proxy'] = self.proxy_url
+
+                            # Add cookies if configured
+                            if config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH):
+                                ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
 
                             with YoutubeDL(ydl_opts) as ydl:
                                 ydl.download([request.url])
@@ -782,6 +791,10 @@ class AudioSnippetExtractor:
         
         if self.proxy_url:
             ydl_opts['proxy'] = self.proxy_url
+
+        # Add cookies if configured
+        if config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH):
+            ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
 
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])

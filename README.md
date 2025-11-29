@@ -134,13 +134,35 @@ app/
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HOST` | Server host | 0.0.0.0 |
-| `PORT` | Server port | 5000 |
+| `YOUTUBE_PROXY_URL` | Proxy URL | None |
+| `YOUTUBE_COOKIES_PATH` | Path to cookies file | None |
+| `YOUTUBE_COOKIES_CONTENT` | Base64 encoded cookies | None |
 | `LOG_TO_FILE` | Enable file logging | false |
 | `MAX_CONCURRENT_JOBS` | Max simultaneous extractions | 3 |
 | `CACHE_ENABLED` | Enable audio caching | true |
 | `FFMPEG_THREADS` | Threads for processing | 4 |
 
 See `.env.example` for all available options.
+
+### 🍪 Cookie Content
+
+To handle age-restricted videos or other access issues, you can provide YouTube cookies.
+
+1.  **Export Cookies**: Use a browser extension (e.g., "Get cookies.txt" for Chrome/Firefox) to export your YouTube cookies into a `cookies.txt` file.
+2.  **Place File**:
+    *   **Local**: Place `cookies.txt` in your `app/` directory or any accessible path.
+    *   **Docker**: Mount `cookies.txt` into the container, e.g., `/app/cookies.txt`.
+3.  **Configure**: Set `YOUTUBE_COOKIES_PATH=/app/cookies.txt` (Docker) or absolute path (local).
+
+### ☁️ Cloud Deployment (Vercel/Render)
+
+For cloud environments where you can't upload files easily:
+
+1.  **Encode Cookies**: Convert your `cookies.txt` to Base64.
+    ```bash
+    base64 -i cookies.txt -o cookies_b64.txt
+    ```
+2.  **Set Environment Variable**: Copy the content of `cookies_b64.txt` and set it as `YOUTUBE_COOKIES_CONTENT`.
 
 ---
 

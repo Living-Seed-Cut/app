@@ -74,6 +74,12 @@ TEMP_DIR = os.getenv("TEMP_DIR", tempfile.gettempdir())
 # Optional proxy URL for YouTube requests
 YOUTUBE_PROXY_URL = os.getenv("YOUTUBE_PROXY_URL")
 
+# Path to YouTube cookies file (Netscape format)
+YOUTUBE_COOKIES_PATH = os.getenv("YOUTUBE_COOKIES_PATH")
+
+# Content of YouTube cookies file (Base64 encoded, optional)
+YOUTUBE_COOKIES_CONTENT = os.getenv("YOUTUBE_COOKIES_CONTENT")
+
 # =============================================================================
 # Processing Configuration
 # =============================================================================
