@@ -17,7 +17,7 @@
 
 ## 📖 About
 
-Livingseed Media Cut is a free, web-based tool designed to help our ministry community easily extract audio from YouTube videos. Whether you need a sermon clip, worship song segment, or teaching excerpt, this tool makes it simple to download exactly what you need in your preferred format.
+Livingseed Media Cut is a robust API designed to help our ministry community easily extract audio from YouTube videos. Whether you need a sermon clip, worship song segment, or teaching excerpt, this tool makes it simple to download exactly what you need in your preferred format.
 
 ### ✨ Key Features
 
@@ -27,7 +27,7 @@ Livingseed Media Cut is a free, web-based tool designed to help our ministry com
 - 📊 **Real-time Progress** - Track extraction progress with live updates
 - 📜 **Download History** - Keep track of your recent extractions
 - ⚡ **Fast & Free** - No registration required, completely free to use
-- 🎨 **Modern UI** - Beautiful, responsive design that works on all devices
+- ⚡ **Fast & Free** - No registration required, completely free to use
 
 ---
 
