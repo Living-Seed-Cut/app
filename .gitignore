@@ -174,3 +174,4 @@ dmypy.json
 *.socket
 client_secrets**
 token.json
+youtube_api_creds**

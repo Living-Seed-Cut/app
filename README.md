@@ -154,7 +154,24 @@ To handle age-restricted videos or other access issues, you can provide YouTube 
     *   **Docker**: Mount `cookies.txt` into the container, e.g., `/app/cookies.txt`.
 3.  **Configure**: Set `YOUTUBE_COOKIES_PATH=/app/cookies.txt` (Docker) or absolute path (local).
 
-### ☁️ Cloud Deployment (Vercel/Render)
+### Google OAuth Credentials (Vercel)
+
+For cloud deployments (like Vercel) where you cannot upload sensitive files like `client_secrets.json` or `youtube_api_creds.pickle`, you can provide them as Base64 encoded environment variables.
+
+1.  **Encode `client_secrets.json`**:
+    ```bash
+    base64 -i client_secrets.json -o -
+    ```
+    Copy the output and set it as `GOOGLE_CLIENT_SECRETS`.
+
+2.  **Encode `youtube_api_creds.pickle`**:
+    First, generate the token locally using `python generate_token.py`. Then encode it:
+    ```bash
+    base64 -i youtube_api_creds.pickle -o -
+    ```
+    Copy the output and set it as `GOOGLE_API_TOKEN`.
+
+### YouTube Cookies (Cloud Deployment) (Vercel/Render)
 
 For cloud environments where you can't upload files easily:
 

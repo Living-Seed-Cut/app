@@ -80,6 +80,13 @@ YOUTUBE_COOKIES_PATH = os.getenv("YOUTUBE_COOKIES_PATH")
 # Content of YouTube cookies file (Base64 encoded, optional)
 YOUTUBE_COOKIES_CONTENT = os.getenv("YOUTUBE_COOKIES_CONTENT")
 
+# Path to YouTube API OAuth credentials (pickle file)
+YOUTUBE_API_TOKEN_FILE = os.getenv("YOUTUBE_API_TOKEN_FILE", "youtube_api_creds.pickle")
+
+# Google OAuth Credentials (Base64 encoded content)
+GOOGLE_CLIENT_SECRETS = os.getenv("GOOGLE_CLIENT_SECRETS")
+GOOGLE_API_TOKEN = os.getenv("GOOGLE_API_TOKEN")
+
 # =============================================================================
 # Processing Configuration
 # =============================================================================
