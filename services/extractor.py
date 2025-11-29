@@ -62,12 +62,13 @@ class YoutubeAPI:
         self._prepare_secrets_and_token()
         self.youtube = self._get_authenticated_service()
     def _prepare_secrets_and_token(self):
+        global CLIENT_SECRETS_FILE
+        global CREDENTIALS_PICKLE_FILE
         client_secrets_content = os.environ.get(ENV_CLIENT_SECRETS)
         if client_secrets_content:
             secrets_path = os.path.join(self.temp_dir, CLIENT_SECRETS_FILE)
             with open(secrets_path, 'w') as f:
                 f.write(client_secrets_content)
-            global CLIENT_SECRETS_FILE 
             CLIENT_SECRETS_FILE = secrets_path
             logger.info("Loaded client secrets from environment variable.")
         token_base64 = os.environ.get(ENV_TOKEN_PICKLE)
@@ -76,7 +77,6 @@ class YoutubeAPI:
             token_path = os.path.join(self.temp_dir, CREDENTIALS_PICKLE_FILE)
             with open(token_path, 'wb') as f:
                 f.write(token_pickle_content)
-            global CREDENTIALS_PICKLE_FILE
             CREDENTIALS_PICKLE_FILE = token_path
             logger.info("Loaded token pickle from environment variable.")
     def _get_authenticated_service(self):
