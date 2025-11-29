@@ -1,0 +1,174 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Application specific - Production exclusions
+logs/
+temp/
+*.log
+audio_snippet_api.log
+cache/
+uploads/
+downloads/
+sessions/
+user_data/
+
+# YouTube Audio Snippet Extractor specific
+extracted_audio/
+processed_files/
+job_cache/
+metadata_cache/
+*.m4a
+*.mp3
+*.wav
+*.flac
+*.aac
+temp_audio_*
+
+# Development and debugging files
+*.debug
+*.test
+test_*.py
+*_test.py
+debug_*.py
+performance_*.py
+scripts/test-*.py
+scripts/debug-*.py
+scripts/performance-*.py
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Docker and containerization
+.dockerignore
+docker-compose.override.yml
+.env.local
+.env.development
+.env.test
+
+# Node modules and frontend build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn-integrity
+
+# Temporary and cache files
+*.tmp
+*.temp
+*.cache
+.cache/
+.tmp/
+.temp/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration files with sensitive data
+config.ini
+secrets.json
+.env
+.env.production
+.env.staging
+
+# Coverage and testing
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Documentation build
+docs/_build/
+site/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# Pyre type checker
+.pyre/
+
+# Application runtime files
+*.pid
+*.sock
+*.socket

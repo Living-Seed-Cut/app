@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+yt-dlp
+python-multipart
+aiofiles
+requests
+mutagen
+imageio-ffmpeg

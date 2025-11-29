@@ -1,0 +1,79 @@
+"""
+Configuration module for Livingseed Media Cut application.
+Centralizes all environment variables and application constants.
+"""
+
+import os
+import tempfile
+
+# =============================================================================
+# Server Configuration
+# =============================================================================
+
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "5000"))
+RELOAD = os.getenv("RELOAD", "false").lower() == "true"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "info")
+
+# =============================================================================
+# Cleanup Configuration
+# =============================================================================
+
+# Cleanup interval in seconds (default: 1 hour)
+CLEANUP_INTERVAL = int(os.getenv("CLEANUP_INTERVAL", "3600"))
+
+# File retention time in hours (default: 24 hours)
+FILE_RETENTION_HOURS = int(os.getenv("FILE_RETENTION_HOURS", "24"))
+
+# Maximum number of files to keep
+MAX_FILES = int(os.getenv("MAX_FILES", "100"))
+
+# =============================================================================
+# Performance Optimization Configuration
+# =============================================================================
+
+# Maximum concurrent extraction jobs
+MAX_CONCURRENT_JOBS = int(os.getenv("MAX_CONCURRENT_JOBS", "3"))
+
+# Enable caching of downloaded audio files
+CACHE_ENABLED = os.getenv("CACHE_ENABLED", "true").lower() == "true"
+
+# Cache retention time in hours
+CACHE_RETENTION_HOURS = int(os.getenv("CACHE_RETENTION_HOURS", "6"))
+
+# FFmpeg thread count for processing
+FFMPEG_THREADS = int(os.getenv("FFMPEG_THREADS", "4"))
+
+# yt-dlp concurrent fragment downloads
+YTDL_CONCURRENT_FRAGMENTS = int(os.getenv("YTDL_CONCURRENT_FRAGMENTS", "8"))
+
+# =============================================================================
+# Duration Limits (in seconds)
+# =============================================================================
+
+# Maximum video duration: 4 hours
+MAX_VIDEO_DURATION = int(os.getenv("MAX_VIDEO_DURATION", "14400"))
+
+# Maximum snippet duration: 4 hours
+MAX_SNIPPET_DURATION = int(os.getenv("MAX_SNIPPET_DURATION", "14400"))
+
+# =============================================================================
+# Paths
+# =============================================================================
+
+# Temporary directory for file processing
+TEMP_DIR = os.getenv("TEMP_DIR", tempfile.gettempdir())
+
+# =============================================================================
+# YouTube Configuration
+# =============================================================================
+
+# Optional proxy URL for YouTube requests
+YOUTUBE_PROXY_URL = os.getenv("YOUTUBE_PROXY_URL")
+
+# =============================================================================
+# Processing Configuration
+# =============================================================================
+
+# Default timeout for processing operations (in seconds)
+PROCESSING_TIMEOUT = int(os.getenv("PROCESSING_TIMEOUT", "300"))
