@@ -175,3 +175,4 @@ dmypy.json
 client_secrets**
 token.json
 youtube_api_creds**
+cookies.txt

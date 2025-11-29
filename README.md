@@ -186,15 +186,36 @@ To bypass YouTube's "Sign in to confirm you’re not a bot" error without using 
 2.  **Configure**:
     *   Set `YOUTUBE_VISITOR_DATA` environment variable with this string.
 
+### 🛡️ Vercel / Datacenter IP Bypass (Recommended)
+
+Vercel uses AWS Datacenter IPs, which YouTube blocks aggressively. If you see "Sign in to confirm you’re not a bot", you have two options:
+
+1.  **Use Cookies** (Free, but requires maintenance): Set `YOUTUBE_COOKIES_CONTENT`.
+2.  **Use a Residential Proxy** (Paid, scalable, no cookies):
+    *   Get a residential proxy (e.g., from Smartproxy, Bright Data, IPRoyal).
+    *   Set `YOUTUBE_PROXY_URL` environment variable:
+        ```
+        http://user:pass@host:port
+        ```
+    *   This masks Vercel's IP with a residential one, bypassing the block.
+
 ### YouTube Cookies (Legacy/Fallback)
 
 For cloud environments where you can't upload files easily:
 
-1.  **Encode Cookies**: Convert your `cookies.txt` to Base64.
-    ```bash
-    base64 -i cookies.txt -o cookies_b64.txt
-    ```
-2.  **Set Environment Variable**: Copy the content of `cookies_b64.txt` and set it as `YOUTUBE_COOKIES_CONTENT`.
+1.  **Export Cookies**:
+    *   Install the **"Get cookies.txt LOCALLY"** extension for Chrome/Firefox.
+    *   Go to `youtube.com` and ensure you are logged in.
+    *   Click the extension icon and export as `cookies.txt` (Netscape format).
+
+2.  **Encode**:
+    *   Convert the file content to Base64 (to avoid newline issues in env vars).
+    *   **Mac/Linux**: `base64 -i cookies.txt`
+    *   **Windows**: Use an online Base64 encoder or PowerShell.
+
+3.  **Configure**:
+    *   Copy the Base64 string.
+    *   Set `YOUTUBE_COOKIES_CONTENT` environment variable with this string.
 
 ---
 
