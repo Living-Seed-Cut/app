@@ -929,9 +929,9 @@ class AudioSnippetExtractor:
         # Determine authentication method
         has_cookies = config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH)
         
-        # Minimal yt-dlp settings
+        # Optimized yt-dlp settings for faster video downloads (480p max)
         ydl_opts = {
-            'format': 'best[ext=mp4]/best[height<=720]/best',
+            'format': 'best[height<=480][ext=mp4]/best[height<=720][ext=mp4]/best',
             'outtmpl': f'{temp_basename}.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
@@ -997,15 +997,12 @@ class AudioSnippetExtractor:
         # Get FFmpeg path (hybrid approach: bundled or system)
         ffmpeg_path = get_ffmpeg_path()
         
-        # Optimized FFmpeg command for video processing
+        # Fast FFmpeg command using stream copy (no reencoding)
         ffmpeg_command = [
             ffmpeg_path, '-y', '-i', input_file,
-            '-c:v', 'libx264',  # H.264 codec for compatibility
-            '-c:a', 'aac',       # AAC audio codec
-            '-preset', 'fast',   # Balance between speed and quality
-            '-crf', '23',        # Constant rate factor for quality
+            '-c:v', 'copy',      # Copy video stream (no reencoding = FAST)
+            '-c:a', 'copy',      # Copy audio stream (no reencoding = FAST)
             '-avoid_negative_ts', 'make_zero',
-            '-threads', str(config.FFMPEG_THREADS),
             '-progress', 'pipe:1'
         ]
 

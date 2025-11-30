@@ -97,17 +97,6 @@ GOOGLE_API_TOKEN = os.getenv("GOOGLE_API_TOKEN")
 YOUTUBE_PO_TOKEN = os.getenv("YOUTUBE_PO_TOKEN")
 YOUTUBE_VISITOR_DATA = os.getenv("YOUTUBE_VISITOR_DATA")
 
-# Debug logging for environment variables
-if YOUTUBE_VISITOR_DATA:
-    print(f"✅ Loaded YOUTUBE_VISITOR_DATA: {YOUTUBE_VISITOR_DATA[:20]}...")
-else:
-    print("❌ YOUTUBE_VISITOR_DATA not found in environment")
-
-if YOUTUBE_PO_TOKEN:
-    print(f"✅ Loaded YOUTUBE_PO_TOKEN: {YOUTUBE_PO_TOKEN[:20]}...")
-else:
-    print("⚠️ YOUTUBE_PO_TOKEN not found in environment")
-
 # =============================================================================
 # Processing Configuration
 # =============================================================================
