@@ -718,24 +718,6 @@ class AudioSnippetExtractor:
                         None,
                         lambda: self._process_video(downloaded_file, output_path, job_id, start_seconds, end_seconds, request.extract_full)
                     )
-                    
-                    # Clean up temporary video file and partial downloads
-                    try:
-                        if os.path.exists(downloaded_file):
-                            os.remove(downloaded_file)
-                            logger.info(f"Cleaned up temp video: {downloaded_file}")
-                        
-                        # Clean up any partial/temp files from yt-dlp
-                        import glob
-                        temp_pattern = f"{os.path.dirname(downloaded_file)}/temp_*"
-                        for temp_file in glob.glob(temp_pattern):
-                            try:
-                                os.remove(temp_file)
-                                logger.info(f"Cleaned up: {temp_file}")
-                            except:
-                                pass
-                    except Exception as e:
-                        logger.warning(f"Cleanup warning: {e}")
                 else:
                     # Trim audio for MP3/WAV formats
                     job_storage[job_id]['progress'] = 'Processing audio...'
@@ -866,6 +848,23 @@ class AudioSnippetExtractor:
                 if not os.path.exists(output_path):
                     file_type = "video" if request.output_format == 'mp4' else "audio"
                     raise RuntimeError(f"Failed to create the {file_type} file. Please try again.")
+                
+                # Clean up temp files AFTER successful processing
+                try:
+                    if os.path.exists(downloaded_file):
+                        os.remove(downloaded_file)
+                        logger.info(f"Cleaned up temp file: {downloaded_file}")
+                    
+                    # Clean up partial downloads
+                    import glob
+                    partial_files = glob.glob(f"{downloaded_file}.*") + glob.glob(f"{downloaded_file}.part*")
+                    for pf in partial_files:
+                        try:
+                            os.remove(pf)
+                        except:
+                            pass
+                except Exception as e:
+                    logger.warning(f"Cleanup warning: {e}")
                 
                 # Insert metadata for MP3 and MP4 files (parallel processing)
                 if request.output_format in ['mp3', 'mp4'] and METADATA_AVAILABLE:
