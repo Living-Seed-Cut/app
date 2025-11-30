@@ -718,6 +718,24 @@ class AudioSnippetExtractor:
                         None,
                         lambda: self._process_video(downloaded_file, output_path, job_id, start_seconds, end_seconds, request.extract_full)
                     )
+                    
+                    # Clean up temporary video file and partial downloads
+                    try:
+                        if os.path.exists(downloaded_file):
+                            os.remove(downloaded_file)
+                            logger.info(f"Cleaned up temp video: {downloaded_file}")
+                        
+                        # Clean up any partial/temp files from yt-dlp
+                        import glob
+                        temp_pattern = f"{os.path.dirname(downloaded_file)}/temp_*"
+                        for temp_file in glob.glob(temp_pattern):
+                            try:
+                                os.remove(temp_file)
+                                logger.info(f"Cleaned up: {temp_file}")
+                            except:
+                                pass
+                    except Exception as e:
+                        logger.warning(f"Cleanup warning: {e}")
                 else:
                     # Trim audio for MP3/WAV formats
                     job_storage[job_id]['progress'] = 'Processing audio...'
@@ -826,9 +844,23 @@ class AudioSnippetExtractor:
                 loop = asyncio.get_event_loop()
                 await loop.run_in_executor(None, _trim_audio)
                 
-                # Clean up temporary file
-                if os.path.exists(downloaded_file):
-                    os.remove(downloaded_file)
+                # Clean up temporary file and partials
+                try:
+                    if os.path.exists(downloaded_file):
+                        os.remove(downloaded_file)
+                        logger.info(f"Cleaned up temp audio: {downloaded_file}")
+                    
+                    # Clean up any yt-dlp partial files
+                    import glob
+                    partial_files = glob.glob(f"{downloaded_file}.*") + glob.glob(f"{downloaded_file}.part*")
+                    for pf in partial_files:
+                        try:
+                            os.remove(pf)
+                            logger.info(f"Cleaned up partial: {pf}")
+                        except:
+                            pass
+                except Exception as e:
+                    logger.warning(f"Cleanup warning: {e}")
                 
                 # Verify output
                 if not os.path.exists(output_path):
