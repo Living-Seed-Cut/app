@@ -103,3 +103,7 @@ YOUTUBE_VISITOR_DATA = os.getenv("YOUTUBE_VISITOR_DATA")
 
 # Default timeout for processing operations (in seconds)
 PROCESSING_TIMEOUT = int(os.getenv("PROCESSING_TIMEOUT", "300"))
+
+# Maximum output audio file size in MB (0 = no limit)
+# Audio will be compressed to fit within this limit
+MAX_OUTPUT_SIZE_MB = float(os.getenv("MAX_OUTPUT_SIZE_MB", "16"))

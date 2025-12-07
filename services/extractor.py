@@ -507,6 +507,12 @@ class AudioSnippetExtractor:
                 ydl_opts['http_headers'] = {'Authorization': f'Bearer {creds.token}'}
                 logger.info("Using OAuth token for yt-dlp info extraction")
 
+            # Explicitly set ffmpeg location
+            try:
+                ydl_opts['ffmpeg_location'] = get_ffmpeg_path()
+            except Exception:
+                pass
+
             if config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH):
                 ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
                 
@@ -657,6 +663,12 @@ class AudioSnippetExtractor:
                                 'socket_timeout': 20,
                                 'nocheckcertificate': True,
                             }
+
+                            # Explicitly set ffmpeg location
+                            try:
+                                ydl_opts['ffmpeg_location'] = get_ffmpeg_path()
+                            except Exception:
+                                pass
                             
                             # Configure client based on authentication method
                             if has_cookies:
@@ -664,21 +676,28 @@ class AudioSnippetExtractor:
                                 ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
                                 logger.info("Using cookies for authentication")
                             else:
-                                # No cookies: use iOS client with minimal args
-                                ydl_opts['extractor_args'] = {
-                                    'youtube': {
-                                        'player_client': ['ios'],
+                                # Let yt-dlp auto-select the best client
+                                # Only add extractor_args if PO Token or Visitor Data is configured
+                                if config.YOUTUBE_PO_TOKEN:
+                                    ydl_opts['extractor_args'] = {
+                                        'youtube': {
+                                            'po_token': [config.YOUTUBE_PO_TOKEN]
+                                        }
                                     }
-                                }
-                                
-                                # Add visitor_data if available
-                                if config.YOUTUBE_VISITOR_DATA:
+                                    logger.info("Using PO Token for audio")
+                                elif config.YOUTUBE_VISITOR_DATA:
                                     visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
                                     if '%' in visitor_data:
                                         from urllib.parse import unquote
                                         visitor_data = unquote(visitor_data)
-                                    ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
-                                    logger.info("Using iOS client with Visitor Data")
+                                    ydl_opts['extractor_args'] = {
+                                        'youtube': {
+                                            'visitor_data': [visitor_data]
+                                        }
+                                    }
+                                    logger.info("Using Visitor Data for audio")
+                                else:
+                                    logger.info("Using default yt-dlp client for audio")
                             
                             if self.proxy_url:
                                 ydl_opts['proxy'] = self.proxy_url
@@ -747,6 +766,25 @@ class AudioSnippetExtractor:
                 
                     codec = codec_map.get(request.output_format, 'libmp3lame')
                     
+                    # Calculate duration for bitrate calculation
+                    if request.extract_full:
+                        audio_duration = float(video_info.get('duration') or 0)
+                    else:
+                        audio_duration = end_seconds - start_seconds
+                    
+                    # Calculate optimal bitrate to stay under MAX_OUTPUT_SIZE_MB
+                    # Formula: bitrate (kbps) = (target_size_bytes * 8) / (duration_seconds * 1000)
+                    target_bitrate = None
+                    if config.MAX_OUTPUT_SIZE_MB > 0 and audio_duration > 0 and request.output_format == 'mp3':
+                        target_size_bytes = config.MAX_OUTPUT_SIZE_MB * 1024 * 1024
+                        # Leave 5% margin for container overhead
+                        target_size_bytes = target_size_bytes * 0.95
+                        target_bitrate_kbps = int((target_size_bytes * 8) / (audio_duration * 1000))
+                        
+                        # Clamp bitrate between 32k and 320k for quality
+                        target_bitrate = max(32, min(320, target_bitrate_kbps))
+                        logger.info(f"Calculated target bitrate: {target_bitrate}k for {audio_duration:.1f}s audio (target: {config.MAX_OUTPUT_SIZE_MB}MB)")
+                    
                     # Optimized FFmpeg command for speed
                     ffmpeg_command = [
                         ffmpeg_path, '-y', '-i', downloaded_file,
@@ -765,7 +803,9 @@ class AudioSnippetExtractor:
                         ffmpeg_command.insert(7, str(end_seconds - start_seconds))
                     
                     if request.output_format == 'mp3':
-                        ffmpeg_command.extend(['-b:a', '192k'])
+                        # Use calculated bitrate or default to 192k
+                        bitrate = f'{target_bitrate}k' if target_bitrate else '192k'
+                        ffmpeg_command.extend(['-b:a', bitrate])
                     elif request.output_format == 'wav':
                         ffmpeg_command.extend(['-ar', '44100'])  # Standard sample rate for faster processing
                     
@@ -818,9 +858,11 @@ class AudioSnippetExtractor:
                     process.wait(timeout=self.timeout)
                     
                     if process.returncode != 0:
-                        error_output = ''.join(ffmpeg_output[-20:])  # Last 20 lines
-                        logger.error(f"FFmpeg failed with code {process.returncode}. Output: {error_output}")
-                        raise RuntimeError(f"FFmpeg processing failed: {error_output[:500]}")
+                        # Capture more output for debugging
+                        error_output = ''.join(ffmpeg_output)
+                        logger.error(f"FFmpeg failed with code {process.returncode}. Full Output: {error_output}")
+                        # Include last 1000 chars in exception
+                        raise RuntimeError(f"FFmpeg processing failed: {error_output[-1000:]}")
                 
                 # Get the event loop
                 loop = asyncio.get_event_loop()
@@ -960,9 +1002,15 @@ class AudioSnippetExtractor:
         # Determine authentication method
         has_cookies = config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH)
         
-        # Optimized yt-dlp settings for faster video downloads (480p max)
+        # Optimized yt-dlp settings for faster video downloads (720p max)
+        # Prioritize MP4 (H.264/AAC) for direct stream copy compatibility
+        # Format priority:
+        # 1. 136+140: 720p mp4 video + m4a audio (merged)
+        # 2. 135+140: 480p mp4 video + m4a audio (merged)
+        # 3. 18: 360p progressive mp4 (single file)
+        # 4. best: fallback to best available
         ydl_opts = {
-            'format': 'best[height<=480][ext=mp4]/best[height<=720][ext=mp4]/best',
+            'format': '136+140/135+140/18/bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'outtmpl': f'{temp_basename}.%(ext)s',
             'quiet': True,
             'progress_hooks': [progress_hook],
@@ -980,21 +1028,37 @@ class AudioSnippetExtractor:
             ydl_opts['cookiefile'] = config.YOUTUBE_COOKIES_PATH
             logger.info("Using cookies for video download")
         else:
-            ydl_opts['extractor_args'] = {
-                'youtube': {
-                    'player_client': ['ios'],
+            # Let yt-dlp auto-select the best client
+            # Only add extractor_args if PO Token or Visitor Data is configured
+            if config.YOUTUBE_PO_TOKEN:
+                ydl_opts['extractor_args'] = {
+                    'youtube': {
+                        'po_token': [config.YOUTUBE_PO_TOKEN]
+                    }
                 }
-            }
-            if config.YOUTUBE_VISITOR_DATA:
+                logger.info("Using PO Token for video")
+            elif config.YOUTUBE_VISITOR_DATA:
                 visitor_data = config.YOUTUBE_VISITOR_DATA.strip().rstrip('.')
                 if '%' in visitor_data:
                     from urllib.parse import unquote
                     visitor_data = unquote(visitor_data)
-                ydl_opts['extractor_args']['youtube']['visitor_data'] = [visitor_data]
-                logger.info("Using iOS client with Visitor Data for video")
+                ydl_opts['extractor_args'] = {
+                    'youtube': {
+                        'visitor_data': [visitor_data]
+                    }
+                }
+                logger.info("Using Visitor Data for video")
+            else:
+                logger.info("Using default yt-dlp client for video")
         
         if self.proxy_url:
             ydl_opts['proxy'] = self.proxy_url
+
+        # Explicitly set ffmpeg location
+        try:
+            ydl_opts['ffmpeg_location'] = get_ffmpeg_path()
+        except Exception:
+            pass
 
         # Add cookies if configured
         if config.YOUTUBE_COOKIES_PATH and os.path.exists(config.YOUTUBE_COOKIES_PATH):
@@ -1056,11 +1120,13 @@ class AudioSnippetExtractor:
             universal_newlines=True
         )
         
-        # Track ffmpeg progress
+        ffmpeg_output = []
         while True:
             line = process.stdout.readline()
             if not line and process.poll() is not None:
                 break
+            
+            ffmpeg_output.append(line)
             
             if line.startswith('out_time_ms='):
                 try:
@@ -1068,15 +1134,25 @@ class AudioSnippetExtractor:
                     time_seconds = time_ms / 1000000.0
                     if not extract_full and start_seconds is not None and end_seconds is not None:
                         snippet_duration = end_seconds - start_seconds
-                        if snippet_duration > 0:
-                            progress_percent = min(75.0 + (time_seconds / snippet_duration) * 20.0, 95.0)
-                            job_storage[job_id]['percent'] = progress_percent
-                            job_storage[job_id]['progress'] = f'Processing video... {progress_percent:.1f}%'
+                        trim_percent = min((time_seconds / snippet_duration) * 100, 100)
+                        # Map processing progress from 75% to 95%
+                        total_percent = 75.0 + (trim_percent * 0.20)
+                        job_storage[job_id]['percent'] = min(total_percent, 95.0)
+                        job_storage[job_id]['progress'] = f'Processing video... {trim_percent:.1f}%'
+                    else:
+                        job_storage[job_id]['progress'] = 'Processing video...'
                 except (ValueError, IndexError):
                     pass
         
+        # Wait for process to complete
+        process.wait(timeout=self.timeout)
+        
         if process.returncode != 0:
-            raise RuntimeError("FFmpeg processing failed")
+            # Capture more output for debugging
+            error_output = ''.join(ffmpeg_output)
+            logger.error(f"FFmpeg failed with code {process.returncode}. Full Output: {error_output}")
+            raise RuntimeError(f"FFmpeg processing failed: {error_output[-1000:]}")
+
 
 
 # Initialize singleton instance
